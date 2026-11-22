@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Performa{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-head"><p class="eyebrow">Performa</p><h1 class="h2">Evaluasi pada {{ m.n_test }} data uji</h1>
+      <p>Data dibagi 80:20 ({{ m.n_train }} latih, {{ m.n_test }} uji), parameter dipilih dengan GridSearchCV 5 lipatan.</p></div>
+    <div class="grid g5 stat-row">
+      {% for label, key in [('Accuracy','accuracy'),('Precision','precision'),('Recall','recall'),('F1-Score','f1'),('AUC','auc')] %}
+      <div class="card stat"><span>{{ label }}</span><b>{{ m[key]|pct }}{{ '' if key == 'auc' else '%' }}</b></div>
+      {% endfor %}
+    </div>
+    <p class="muted note">Model: kriteria {{ m.best_params.criterion }}, max_depth {{ m.best_params.max_depth }}, min_samples_leaf {{ m.best_params.min_samples_leaf }}. F1 validasi silang: {{ m.cv_f1|pct }}%.</p>
+
+    <div class="grid g2">
+      <figure class="card chart"><img src="{{ url_for('static', filename='img/confusion_matrix.png') }}" alt="Confusion matrix model">
+        <figcaption>{{ ins.cm }}</figcaption></figure>
+      <figure class="card chart"><img src="{{ url_for('static', filename='img/roc_curve.png') }}" alt="Kurva ROC model">
+        <figcaption>{{ ins.roc }}</figcaption></figure>
+      <figure class="card chart"><img src="{{ url_for('static', filename='img/feature_importance.png') }}" alt="Kepentingan fitur">
+        <figcaption>{{ ins.importance }}</figcaption></figure>
+      <figure class="card chart"><img src="{{ url_for('static', filename='img/depth_curve.png') }}" alt="Akurasi terhadap max_depth">
+        <figcaption>{{ ins.depth }}</figcaption></figure>
+    </div>
+
+    <div class="card"><h3>Struktur pohon keputusan</h3>
+      <p class="muted">Setiap kotak berisi satu pertanyaan. Ikuti garis Ya atau Tidak sampai ke daun.</p>
+      {% set path = [] %}{% set risky = false %}{% include "_tree.html" %}</div>
+  </div>
+</section>
+{% endblock %}

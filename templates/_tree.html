@@ -1,0 +1,15 @@
+<div class="tree-wrap">
+  <svg class="tree {{ 'is-risky' if risky else 'is-safe' }}" viewBox="0 0 {{ tree.width }} {{ tree.height }}" role="img"
+       aria-label="Diagram pohon keputusan{{ ' dengan jalur pasien disorot' if path else '' }}">
+    {% for e in tree.edges if not (path and e.child in path) %}<path class="edge" d="{{ e.d }}"/>{% endfor %}
+    {% for e in tree.edges if path and e.child in path %}<path class="edge on" d="{{ e.d }}"/><path class="edge hot" d="{{ e.d }}"/>{% endfor %}
+    {% for e in tree.edges %}<text class="elabel{{ ' on' if path and e.child in path }}" x="{{ e.lx }}" y="{{ e.ly + 4 }}" text-anchor="middle">{{ e.label }}</text>{% endfor %}
+    {% for n in tree.nodes %}
+    <g class="node{{ ' leaf' if n.leaf }}{{ ' risk' if n.risky }}{{ ' on' if path and n.id in path }}" transform="translate({{ n.x }},{{ n.y }})">
+      <rect width="{{ tree.w }}" height="{{ tree.h }}" rx="10"/>
+      <text class="t1" x="{{ tree.w / 2 }}" y="23" text-anchor="middle">{{ n.lines[0] }}</text>
+      <text class="t2" x="{{ tree.w / 2 }}" y="42" text-anchor="middle">{{ n.lines[1] }}</text>
+    </g>
+    {% endfor %}
+  </svg>
+</div>

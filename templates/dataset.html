@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Dataset{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-head"><p class="eyebrow">Dataset</p><h1 class="h2">Heart Failure Prediction</h1>
+      <p>Sumber: <a href="https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction">Kaggle (fedesoriano)</a>, gabungan lima dataset kardiologi. Target <code>HeartDisease</code>: 1 berisiko, 0 sehat.</p></div>
+    <div class="grid g4 stat-row">
+      <div class="card stat"><span>Pasien dipakai</span><b>{{ m.n_total }}</b></div>
+      <div class="card stat"><span>Berisiko</span><b>{{ m.n_positive }}</b></div>
+      <div class="card stat"><span>Sehat</span><b>{{ m.n_total - m.n_positive }}</b></div>
+      <div class="card stat"><span>Fitur</span><b>{{ fields|length }}</b></div>
+    </div>
+    <div class="grid g2">
+      <figure class="card chart"><img src="{{ url_for('static', filename='img/class_distribution.png') }}" alt="Distribusi kelas target">
+        <figcaption>{{ ins.classes }}</figcaption></figure>
+      <figure class="card chart"><img src="{{ url_for('static', filename='img/correlation.png') }}" alt="Korelasi fitur numerik">
+        <figcaption>{{ ins.corr }}</figcaption></figure>
+    </div>
+    <div class="card"><h3>Kolom data</h3>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Kolom</th><th>Keterangan</th><th>Rentang / pilihan</th><th>Median</th></tr></thead>
+        <tbody>{% for f in fields %}<tr><td><code>{{ f.name }}</code></td><td>{{ f.label }}. {{ f.hint }}</td>
+          <td>{% if f.kind == 'select' %}{% for v, t in f.options %}{{ v }}{{ ', ' if not loop.last }}{% endfor %}{% else %}{{ m.ranges[f.name][0]|fmt }} sampai {{ m.ranges[f.name][1]|fmt }} {{ f.unit }}{% endif %}</td>
+          <td>{{ (m.medians[f.name]|fmt) if f.name in m.medians and f.name != 'FastingBS' else '-' }}</td></tr>{% endfor %}</tbody>
+      </table></div></div>
+    <div class="card"><h3>Pembersihan data</h3>
+      <p>Satu baris dengan tekanan darah 0 dibuang karena mustahil secara medis. Kolesterol bernilai 0 (172 baris) dianggap tidak tercatat dan diisi median di dalam pipeline, sehingga median hanya dihitung dari data latih. Fitur kategorikal diubah dengan one-hot encoding.</p></div>
+  </div>
+</section>
+{% endblock %}

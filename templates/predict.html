@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Prediksi{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-head"><p class="eyebrow">Prediksi</p><h1 class="h2">Data klinis pasien</h1>
+      <p>Isi seluruh kolom. Koma atau titik dapat dipakai sebagai pemisah desimal.</p></div>
+    {% if errors %}<div class="alert alert-error" role="alert"><strong>Ada isian yang perlu diperbaiki.</strong> Periksa pesan di bawah kolom yang bertanda merah.</div>{% endif %}
+    <form method="post" action="{{ url_for('predict_page') }}#hasil" class="card form" data-samples='{{ samples|tojson }}' novalidate>
+      <div class="samples"><span>Isi contoh</span>
+        <button type="button" class="btn btn-ghost btn-sm" data-sample="sehat">Pasien sehat</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-sample="berisiko">Pasien berisiko</button>
+      </div>
+      {% for title, color in groups %}{% set g = loop.index0 %}
+      <fieldset>
+        <legend>{{ title }}</legend>
+        <div class="fields">
+          {% for f in fields if f.group == g %}
+          <label class="field{{ ' invalid' if errors[f.name] }}">
+            <span class="label">{{ f.label }}{% if f.unit %} <small>({{ f.unit }})</small>{% endif %}</span>
+            {% if f.kind == 'select' %}
+            <select name="{{ f.name }}">{% for v, text in f.options %}<option value="{{ v }}" {{ 'selected' if form.get(f.name) == v }}>{{ text }}</option>{% endfor %}</select>
+            {% else %}
+            <input type="text" inputmode="decimal" name="{{ f.name }}" value="{{ form.get(f.name, '') }}" placeholder="{{ f.min }} - {{ f.max }}" autocomplete="off">
+            {% endif %}
+            <span class="hint">{{ f.hint }}</span>
+            {% if errors[f.name] %}<span class="msg msg-error">{{ errors[f.name] }}</span>{% endif %}
+            {% if warnings[f.name] %}<span class="msg msg-warn">{{ warnings[f.name] }}</span>{% endif %}
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-block">Prediksi sekarang</button>
+    </form>
+
+    <div id="hasil">
+    {% if result %}
+    <div class="card verdict {{ 'is-risky' if result.risky else 'is-safe' }}">
+      <div>
+        <span class="badge">{{ 'Risiko tinggi' if result.risky else 'Risiko rendah' }}</span>
+        <h2>{{ 'Pasien berisiko gagal jantung' if result.risky else 'Pasien berisiko rendah gagal jantung' }}</h2>
+        <p>{% if result.risky %}Pola data ini mirip pasien berisiko pada data latih. Sebaiknya lakukan pemeriksaan lanjutan ke dokter untuk memastikan.{% else %}Pola data ini lebih mirip pasien tanpa risiko. Tetap jaga pola hidup sehat dan periksa berkala; hasil rendah bukan jaminan bebas penyakit.{% endif %}</p>
+        {% if warnings %}<p class="msg msg-warn">Beberapa nilai berada di luar rentang data latih, jadi hasil kurang andal.</p>{% endif %}
+      </div>
+      <div class="gauge">
+        <b>{{ result.percent|string|replace('.', ',') }}%</b><span>probabilitas berisiko</span>
+        <div class="meter" role="img" aria-label="Probabilitas {{ result.percent }} persen"><i style="width: {{ result.percent }}%"></i><u></u></div>
+        <small>Batas keputusan 50%</small>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Jalur keputusan pada pohon</h3>
+      <p class="muted">Garis dan kotak berwarna adalah jalur yang dilalui data pasien ini sampai ke keputusan akhir. Persentase pada daun adalah peluang berisiko di kelompok tersebut; {{ result.leaf_n }} pasien latih berada di daun akhir pasien ini.</p>
+      {% set path = result.path %}{% set risky = result.risky %}{% include "_tree.html" %}
+      <ol class="path">{% for s in result.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+    </div>
+
+    <div class="card">
+      <h3>Data pasien dan pembanding</h3>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Indikator</th><th>Nilai pasien</th><th>Median data latih</th></tr></thead>
+        <tbody>{% for r in result.rows %}<tr><td>{{ r.label }}</td>
+          <td>{{ r.shown }}{% if r.category %} <span class="tag tone-{{ r.tone }}">{{ r.category }}</span>{% endif %}</td>
+          <td>{{ r.median or '-' }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </div>
+    {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

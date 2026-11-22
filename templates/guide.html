@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Panduan{% endblock %}
+{% block content %}
+<section class="section s-orange">
+  <div class="container">
+    <div class="section-head"><p class="eyebrow">Panduan</p><h1 class="h2">Cara memakai {{ app_name }}</h1>
+      <p>Empat langkah dari mengisi data sampai memahami hasil.</p></div>
+    <ol class="grid g4 steps">
+      <li class="card"><span class="step-no">1</span><h3>Buka Prediksi</h3><p>Pilih menu Prediksi, lalu klik <b>Pasien sehat</b> atau <b>Pasien berisiko</b> untuk mencoba dengan contoh.</p></li>
+      <li class="card"><span class="step-no">2</span><h3>Isi 11 kolom</h3><p>Semua kolom wajib diisi. Desimal boleh memakai koma atau titik. Pesan merah muncul bila ada isian yang salah.</p></li>
+      <li class="card"><span class="step-no">3</span><h3>Klik Prediksi</h3><p>Halaman akan menggulir ke hasil: label risiko, probabilitas, dan diagram pohon.</p></li>
+      <li class="card"><span class="step-no">4</span><h3>Baca alasannya</h3><p>Ikuti garis berwarna pada pohon untuk melihat pertanyaan yang dijawab model sampai keputusan akhir.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section alt s-cyan">
+  <div class="container">
+    <div class="section-head"><p class="eyebrow">Membaca hasil</p><h2>Contoh: pasien berisiko</h2>
+      <p>Model menilai peluang berisiko {{ example.percent|string|replace('.', ',') }}%. Garis dan kotak berwarna adalah jalur yang dilalui pasien.</p></div>
+    <div class="card">
+      {% set path = example.path %}{% set risky = example.risky %}{% include "_tree.html" %}
+      <ol class="path">{% for s in example.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+      {% include "_codes.html" %}
+    </div>
+    <div class="grid g3 read-tips">
+      <div class="card"><h3>Probabilitas</h3><p>Angka peluang berisiko dari kelompok pasien latih yang berakhir di daun yang sama. Batas keputusan model adalah 50%.</p></div>
+      <div class="card"><h3>Ya dan Tidak</h3><p>Setiap kotak berisi satu pertanyaan. Garis berlabel Ya dipilih jika jawabannya benar untuk pasien, selain itu garis Tidak.</p></div>
+      <div class="card"><h3>Daun</h3><p>Kotak paling bawah adalah keputusan. Angka <code>n</code> adalah jumlah pasien latih yang berakhir di sana.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section s-pink">
+  <div class="container">
+    <div class="section-head"><p class="eyebrow">Glosarium</p><h2>Istilah pada formulir</h2></div>
+    <div class="grid g3">
+      <div class="card"><h3>Tipe nyeri dada</h3><p><b>ASY</b> tanpa gejala, <b>ATA</b> angina atipikal, <b>NAP</b> nyeri non-angina, <b>TA</b> angina tipikal. Angina adalah nyeri dada akibat jantung kekurangan aliran darah.</p></div>
+      <div class="card"><h3>Oldpeak</h3><p>Seberapa jauh segmen ST pada EKG turun saat olahraga dibanding saat istirahat. Makin besar, makin besar indikasi jantung kekurangan darah.</p></div>
+      <div class="card"><h3>Slope ST</h3><p>Arah segmen ST pada puncak latihan: naik (Up), datar (Flat), atau turun (Down). Datar dan turun lebih sering terkait gangguan jantung.</p></div>
+      <div class="card"><h3>Gula darah puasa</h3><p>Bernilai ya jika kadar gula darah setelah puasa melebihi 120 mg/dl.</p></div>
+      <div class="card"><h3>EKG istirahat</h3><p><b>Normal</b>, <b>ST</b> (kelainan gelombang ST-T), atau <b>LVH</b> (dinding bilik kiri jantung menebal).</p></div>
+      <div class="card"><h3>Detak maksimum</h3><p>Detak jantung tertinggi (bpm) yang dicapai saat tes latihan. Nilai rendah dapat berarti jantung kurang responsif.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head"><p class="eyebrow">Tanya jawab</p><h2>Hal yang sering ditanyakan</h2></div>
+    <details><summary>Apakah hasil ini sama dengan diagnosis dokter?</summary><p>Tidak. Model hanya mengenali pola dari {{ m.n_total }} pasien pada dataset latih. Hasilnya untuk pembelajaran, bukan pengganti pemeriksaan medis.</p></details>
+    <details><summary>Mengapa pasien tanpa keluhan nyeri dada (ASY) bisa berisiko?</summary><p>Pada data latih, banyak pasien yang tidak merasakan nyeri dada justru memiliki penyakit jantung. Model mempelajari pola itu dari data.</p></details>
+    <details><summary>Mengapa muncul peringatan nilai di luar rentang?</summary><p>Model hanya dilatih pada rentang nilai tertentu. Di luar rentang itu pohon tetap menjawab, tetapi hasilnya kurang dapat diandalkan.</p></details>
+    <details><summary>Seberapa akurat modelnya?</summary><p>Pada {{ m.n_test }} data uji, akurasi {{ m.accuracy|pct }}% dan recall {{ m.recall|pct }}%. Rinciannya ada di halaman <a href="{{ url_for('performance_page') }}">Performa</a>.</p></details>
+    <div class="actions"><a class="btn btn-primary" href="{{ url_for('predict_page') }}">Coba prediksi sekarang</a></div>
+  </div>
+</section>
+{% endblock %}

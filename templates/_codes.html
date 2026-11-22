@@ -1,0 +1,9 @@
+<div class="codes">
+  <h4>Arti kode pada diagram</h4>
+  <div class="code-grid">
+    {% for f in fields if f.kind == 'select' and f.name != 'FastingBS' %}
+    <div><b>{{ f.label }}</b>{% for v, t in f.options %}<span><code>{{ v }}</code> {{ t.split(' (')[0] }}</span>{% endfor %}</div>
+    {% endfor %}
+  </div>
+  <p>Contoh: kotak <code>Nyeri dada = ASY</code> bertanya "apakah tipe nyeri dadanya ASY (tanpa gejala)?". Angka seperti <code>≤ 141</code> adalah batas nilai. Pada daun, <code>n</code> adalah jumlah pasien latih dan persen adalah peluang berisiko.</p>
+</div>
